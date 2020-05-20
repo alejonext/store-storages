@@ -1,2 +1,3 @@
-# store-storages
-Store of you storage
+# Store decorate
+
+Store of you all classes.

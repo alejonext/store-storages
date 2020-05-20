@@ -1,0 +1,8 @@
+{
+  "name": "store-storages",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "repository": "git@github.com:alejonext/store-storages.git",
+  "author": "AlejoNext <alejonext@gmail.com>",
+  "license": "Apache2.0"
+}
