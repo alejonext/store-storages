@@ -1,56 +1,59 @@
-import { Storage, BasicStorage } from "./storage";
+import { Storage, TemporalStorage } from "./storage";
 /**
  * Stores intenal to externals
- * @param  {Storage}  store  Storage where are your data!
- * @param  {meta}     string Name of the where metadata
+ *
+ * @param  {nameKey}   string  Name of the key
+ * @param  {Storage}    store  Storage where are your data!
  * @retrun {Function}
  */
-export function Stores(store: Storage = new BasicStorage(), meta:string = 'Metadata') {
-	/**
-	 * Decorator
-	 * @param {any}                target      Target class
-	 * @param {string}             propertyKey Name of the storage
-	 * @param {PropertyDescriptor} descriptor  Element save
-	 */
-	return function (
-		target: any,
-		propertyKey: string,
-		descriptor: PropertyDescriptor
-	) {
-		if (!target[meta]) {
-			target[meta] = {};
-		}
+export function Stores(metaString:string, store: Storage = new TemporalStorage()) {
+  /**
+   * Decorator
+   * @param {any}                target      Target class
+   * @param {string}             propertyKey Name of the storage
+   * @param {PropertyDescriptor} descriptor  Element save
+   */
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    let metaKey = metaString || propertyKey;
 
-		Object.defineProperty(target[meta], propertyKey, {
-			get: function () {
-				return JSON.parse(store.getItem(propertyKey));
-			},
-			set: function (val) {
-				store.setItem(propertyKey, JSON.stringify(val));
-			},
-			enumerable: false,
-			configurable: true,
-		});
+    if (!target[store.constructor.name]) {
+      target[store.constructor.name] = {};
+    }
 
-		if (descriptor && descriptor.set && descriptor.get) {
-			let set = descriptor.set;
-			let get = descriptor.get;
+    Object.defineProperty(target[store.constructor.name], metaKey, {
+      get: function () {
+        return JSON.parse(store.getItem(metaKey));
+      },
+      set: function (val) {
+        store.setItem(metaKey, JSON.stringify(val));
+      },
+      enumerable: false,
+      configurable: true,
+    });
 
-			descriptor.set = function (value: any): void {
-				target[meta][propertyKey] = value;
-				set.call(target, value);
-			};
+    if (descriptor?.set && descriptor?.get) {
+      let set = descriptor.set;
+      let get = descriptor.get;
 
-			descriptor.get = function (): any {
-				set.call(target, target[meta][propertyKey]);
-				return get.call(target);
-			};
-		} else {
-			Object.defineProperty(
-				target,
-				propertyKey,
-				Object.getOwnPropertyDescriptor(target[meta], propertyKey)
-			);
-		}
-	};
+      descriptor.set = function (value: any): void {
+        target[store.constructor.name][metaKey] = value;
+        set.call(target, value);
+      };
+
+      descriptor.get = function (): any {
+        set.call(target, target[store.constructor.name][metaKey]);
+        return get.call(target);
+      };
+    } else {
+      Object.defineProperty(
+        target,
+        propertyKey,
+        Object.getOwnPropertyDescriptor(target[store.constructor.name], metaKey)
+      );
+    }
+  };
 }
